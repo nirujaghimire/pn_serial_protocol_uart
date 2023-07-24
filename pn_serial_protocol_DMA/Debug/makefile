@@ -64,8 +64,8 @@ all: main-build
 main-build: pn_serial_protocol_DMA.elf secondary-outputs
 
 # Tool invocations
-pn_serial_protocol_DMA.elf pn_serial_protocol_DMA.map: $(OBJS) $(USER_OBJS) C:\Users\NIRUJA\Desktop\Github\pn_serial_protocol\pn_serial_protocol_DMA\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "pn_serial_protocol_DMA.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\NIRUJA\Desktop\Github\pn_serial_protocol\pn_serial_protocol_DMA\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pn_serial_protocol_DMA.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+pn_serial_protocol_DMA.elf pn_serial_protocol_DMA.map: $(OBJS) $(USER_OBJS) C:\Users\NIRUJA\Desktop\Github\pn_serial_protocol_uart\pn_serial_protocol_DMA\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "pn_serial_protocol_DMA.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\NIRUJA\Desktop\Github\pn_serial_protocol_uart\pn_serial_protocol_DMA\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pn_serial_protocol_DMA.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

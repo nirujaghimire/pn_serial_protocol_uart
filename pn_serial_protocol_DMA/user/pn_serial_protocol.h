@@ -46,8 +46,7 @@ struct SerialProtocolControl {
 extern struct SerialProtocolControl StaticSerialProtocol;
 
 struct SerialProtocolTest {
-	void (*runTx)();
-	void (*runRx)();
+	void (*run)();
 };
 extern struct SerialProtocolTest StaticSerialProtocolTest;
 

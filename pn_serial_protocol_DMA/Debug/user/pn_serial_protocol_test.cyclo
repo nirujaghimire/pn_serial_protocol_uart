@@ -1,0 +1,5 @@
+pn_serial_protocol_test.c:17:6:HAL_UART_RxCpltCallback	1
+pn_serial_protocol_test.c:21:13:receiveCallbackRx	2
+pn_serial_protocol_test.c:28:13:runRx	2
+pn_serial_protocol_test.c:46:13:receiveCallbackTx	2
+pn_serial_protocol_test.c:53:13:runTx	2

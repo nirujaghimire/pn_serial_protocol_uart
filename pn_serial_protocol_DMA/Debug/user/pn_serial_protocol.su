@@ -1,0 +1,11 @@
+../user/pn_serial_protocol.c:53:13:receiveThreadDebug	16	static
+../user/pn_serial_protocol.c:57:13:console	24	static
+../user/pn_serial_protocol.c:92:16:sendAndack	40	static
+../user/pn_serial_protocol.c:122:13:startReceiving	8	static
+../user/pn_serial_protocol.c:133:13:receiveThread	32	static
+../user/pn_serial_protocol.c:253:13:startSending	8	static
+../user/pn_serial_protocol.c:266:16:sendThread	56	static
+../user/pn_serial_protocol.c:346:13:init	24	static
+../user/pn_serial_protocol.c:362:12:transmit	32	static
+../user/pn_serial_protocol.c:381:13:receiveRxCpltCallback	8	static
+../user/pn_serial_protocol.c:392:13:loop	16	static

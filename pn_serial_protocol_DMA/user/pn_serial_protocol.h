@@ -36,8 +36,12 @@ struct SerialProtocolControl {
 	void (*receiveRxCpltCallback)();
 
 	/**
+	 * This checks wheather flash mode is enabled or not
+	 */
+	int (*isFlashModeEnabled)();
+
+	/**
 	 * This is uart loop
-	 *
 	 */
 	void (*loop)();
 

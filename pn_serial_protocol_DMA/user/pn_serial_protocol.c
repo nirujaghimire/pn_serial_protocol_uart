@@ -6,9 +6,18 @@
  */
 #include "pn_serial_protocol.h"
 #include "stdarg.h"
+#include "string.h"
 
 #define RECEIVE_BUFF_SIZE 2048
 #define TRANSMIT_BUFF_SIZE 100
+
+#define ADAPTER_ID 0x0
+#define ADAPTER_REQUEST "ARQ"
+#define ADAPTER_RESPONSE "ARS"
+#define FLASH_ENABLE_REQUEST "FERQ"
+#define FLASH_ENABLE_RESPONSE "FERS"
+#define FLASH_DISABLE_REQUEST "FDRQ"
+#define FLASH_DISABLE_RESPONSE "FDRS"
 
 static UART_HandleTypeDef *huart_adapter;
 static CRC_HandleTypeDef *hcrc_adapter;
@@ -56,7 +65,6 @@ static void receiveThreadDebug(const char *msg) {
 
 static void console(ConsoleStatus status, const char *func_name,
 		const char *msg, ...) {
-//	printf("heyy\n");
 	//	if(state!=CONSOLE_ERROR)
 	if (status == CONSOLE_INFO)
 		return;
@@ -350,7 +358,6 @@ static void init(UART_HandleTypeDef *huart, CRC_HandleTypeDef *hcrc,
 	receiveCallback = receiveCallbackFunc;
 
 	startReceiving();
-//	startSending();
 }
 
 /**
@@ -385,6 +392,14 @@ static void receiveRxCpltCallback() {
 		startReceiving();
 }
 
+static volatile int flashModeStatus = 0;
+/**
+ * This checks wheather flash mode is enabled or not
+ */
+static int isFlashModeEnabled(){
+	return flashModeStatus;
+}
+
 /**
  * This is uart loop
  *
@@ -398,10 +413,28 @@ static void loop() {
 	}
 
 	if (received) {
-		receiveCallback(received_id, rec_data, received_len);
+		if(received_id==ADAPTER_ID){
+			if(strcmp(ADAPTER_REQUEST,(char*)rec_data)==0){
+				transmit(received_id, (uint8_t*)ADAPTER_RESPONSE, strlen(ADAPTER_RESPONSE));
+				printf("Adapter Detected\n");
+			}else if(strcmp(FLASH_ENABLE_REQUEST,(char*)rec_data)==0){
+				flashModeStatus = 1;
+				transmit(received_id, (uint8_t*)FLASH_ENABLE_RESPONSE, strlen(FLASH_ENABLE_RESPONSE));
+				printf("Flash Mode Enabled\n");
+			}else if(strcmp(FLASH_DISABLE_REQUEST,(char*)rec_data)==0){
+				flashModeStatus = 0;
+				transmit(received_id, (uint8_t*)FLASH_DISABLE_RESPONSE, strlen(FLASH_DISABLE_RESPONSE));
+				printf("Flash Mode Disabled\n");
+			}
+		}else{
+			receiveCallback(received_id, rec_data, received_len);
+		}
+
 		received = 0;
 	}
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -409,5 +442,6 @@ struct SerialProtocolControl StaticSerialProtocol = {
 		.init = init,
 		.loop = loop,
 		.receiveRxCpltCallback = receiveRxCpltCallback,
-		.transmit = transmit
+		.transmit = transmit,
+		.isFlashModeEnabled = isFlashModeEnabled
 };

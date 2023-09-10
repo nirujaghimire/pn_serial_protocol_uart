@@ -8,10 +8,11 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SerialUART {
     /*This section is for special can send or receive no registered callback get called*/
-    private static final int ADAPTER_ID = 0x01;
+    private static final int ADAPTER_ID = 0x00;
     private volatile String adapterReceive = "";
     private static final String ADAPTER_REQUEST = "ARQ";
     private static final String ADAPTER_RESPONSE = "ARS";
@@ -36,10 +37,10 @@ public class SerialUART {
     private final CRC32 crc32;
     private final SerialPort port;
 
-    private static final long TRANSMIT_RECEIVE_TIMEOUT = 3000;
-    private static final int TRANSMIT_TRY = 3;
+    private static final long TRANSMIT_RECEIVE_TIMEOUT = 1000;
+    private static final int TRANSMIT_TRY = 2;
 
-    private static final long RECEIVE_TIMEOUT = 3000;
+    private static final long RECEIVE_TIMEOUT = 1000;
 
     private CanTransmitCallback canTransmitCallback =(status)-> {};
     private UartTransmitCallback uartTransmitCallback =()-> {};
@@ -51,18 +52,19 @@ public class SerialUART {
     private final Queue<Byte> receiveQueue = new ArrayDeque<>();
     private final Stack<Integer> statusStack = new Stack<>();
 
+    private volatile boolean isBusy = false;
+
     ///////////////////////////////FOR DEBUG///////////////////////////////////////
     private enum ConsoleStatus{ERROR,INFO,WARNING};
     private void console(ConsoleStatus status,String msg){
         StackTraceElement element = new Exception().getStackTrace()[1];
-
         if(status==ConsoleStatus.ERROR) {
             System.out.println(ConsoleColors.RED+element+":"+msg+ConsoleColors.RESET);
 //            Thread.dumpStack();
         }else if(status==ConsoleStatus.INFO){
-//            System.out.println(ConsoleColors.GREEN+element+":"+msg+ConsoleColors.RESET);
+            System.out.println(ConsoleColors.GREEN+element+":"+msg+ConsoleColors.RESET);
         }else if(status==ConsoleStatus.WARNING){
-//            System.out.println(ConsoleColors.YELLOW+element+":"+msg+ConsoleColors.RESET);
+            System.out.println(ConsoleColors.YELLOW+element+":"+msg+ConsoleColors.RESET);
 //            Thread.dumpStack();
         }else{
             System.out.println(element+":"+msg);
@@ -137,7 +139,7 @@ public class SerialUART {
 
     private boolean isAdapter(){
         long tic = System.currentTimeMillis();
-        long TIMEOUT = 10000;
+        long TIMEOUT = 1000;
 
         enableCanMode();
         adapterReceive = "";
@@ -428,6 +430,13 @@ public class SerialUART {
         }
         return false;
     }
+    /**
+     * If uart is busy transmitting data then it will return true.
+     * @return  : TRUE for transmission completed or else FALSE
+     */
+    public boolean isBusy(){
+        return isBusy;
+    }
 
     /**
      * This method send the data
@@ -436,20 +445,25 @@ public class SerialUART {
      */
     public void send(int id,byte[] bytes){
         new Thread(()->{
+            isBusy = true;
             CanTransmitStatus status;
             for (int i = 0; i < TRANSMIT_TRY; i++) {
-                if(!port.isOpen())
+                if(!port.isOpen()) {
+                    isBusy = false;
                     return;
+                }
                 status = canTransmit(id, bytes);
                 if(status == CanTransmitStatus.SUCCESS) {
                     console(ConsoleStatus.INFO,"Data sent with ID: "+id);
                     if(id!=ADAPTER_ID)
                         canTransmitCallback.canTransmitCallback(CanTransmitStatus.SUCCESS);
+                    isBusy = false;
                     return;
                 }else if (status == CanTransmitStatus.CRC_FAILED) {
                     console(ConsoleStatus.WARNING,"Data sent with ID: "+id+" (CRC Failed)");
                     if(id!=ADAPTER_ID)
                         canTransmitCallback.canTransmitCallback(CanTransmitStatus.CRC_FAILED);
+                    isBusy = false;
                     return;
                 }
                 console(ConsoleStatus.WARNING,"Retrying to send data with ID: "+id);
@@ -457,6 +471,7 @@ public class SerialUART {
             console(ConsoleStatus.ERROR,"Failed to send data with ID: "+id);
             if(id!=ADAPTER_ID)
                 canTransmitCallback.canTransmitCallback(CanTransmitStatus.ERROR);
+            isBusy = false;
         }).start();
     }
 
@@ -490,14 +505,14 @@ public class SerialUART {
      */
     public boolean enableFlashMode(){
         try {
-            Thread.sleep(1000);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
 
         long tic = System.currentTimeMillis();
-        long TIMEOUT = 10000;
+        long TIMEOUT = 1000;
 
         enableCanMode();
         adapterReceive = "";
@@ -513,13 +528,13 @@ public class SerialUART {
      */
     public boolean disableFlashMode(){
         try {
-            Thread.sleep(1000);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
         long tic = System.currentTimeMillis();
-        long TIMEOUT = 10000;
+        long TIMEOUT = 1000;
 
         enableCanMode();
         send(ADAPTER_ID,FLASH_DISABLE_REQUEST.getBytes());
@@ -648,6 +663,4 @@ public class SerialUART {
             System.out.println("Adapter not found");
         return port;
     }
-
-
 }

@@ -22,13 +22,13 @@ public class Main {
         System.out.println(uart.connect() ? "Connected" : "Connection failed");
         transmitted = true;
         byte[] bytes = "Yes this is Peter Speaking, Niruja!!!".getBytes();
-        for(int i=1;i<=(10);i++) {
-            while (!transmitted)
-                Thread.onSpinWait();
-            System.out.printf("Sending : 0x%x => ",i+1);
-            transmitted = false;
-            uart.send(i+1, bytes);
-        }
+//        for(int i=1;i<=(10);i++) {
+//            while (!transmitted)
+//                Thread.onSpinWait();
+//            System.out.printf("Sending : 0x%x => ",i+1);
+//            transmitted = false;
+//            uart.send(i+1, bytes);
+//        }
     }
 
     public static void main(String[] args) {
